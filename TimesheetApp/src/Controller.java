@@ -123,7 +123,7 @@ public class Controller {
 	 */
     public void processAddAction(){
     
-        String project = consoleUtils.promptString("Project:");
+        String project = consoleUtils.promptString("Project Name (one word only):");
         String description = consoleUtils.promptString("Task:");
 
 		// Your code here
