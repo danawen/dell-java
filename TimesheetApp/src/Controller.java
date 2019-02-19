@@ -151,7 +151,7 @@ public class Controller {
 
 
     public void processAddAction(){
-        String project = consoleUtils.promptString("Project:");
+        String project = consoleUtils.promptString("Project (one word only):");
         String description = consoleUtils.promptString("Task:");
 
         if(project == null || project.length() == 0){
