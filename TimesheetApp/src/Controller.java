@@ -2,36 +2,28 @@ import java.util.List;
 
 public class Controller {
 
-	/* Member variables */
-	
     Timesheet timesheet;
     ConsoleUtils consoleUtils;
-    
-    /* Constructor */
-    
+
     public Controller(){
         this.timesheet = new Timesheet();
         this.consoleUtils = new ConsoleUtils();
     }
-    
-    /* Methods */
 
-	/*
-	 * Runs the program
-	 */
     public void start() {
 
-        consoleUtils.printHelp(); // Print the action menu
+        consoleUtils.printHelp();
+
 
         boolean quit = false;
         while(!quit) {
 
-			// Prompt the user for input, collect input, parse into parts
             String input = consoleUtils.promptString("> ");
             String[] actionParts = input.split(" ");
-            String action = actionParts[0].trim(); // Primary action
 
-			// Figure out what to do depending on the user's primary action
+            String action = actionParts[0].trim();
+
+
             if (action.equals("add")) {
 
                 processAddAction();
@@ -50,29 +42,23 @@ public class Controller {
 
             } else if (action.equals("quit")) {
 
-                // Your code here
+                quit = true;
 
             } else if (action.equals("help")) {
 
-            	// Your code here
+            	consoleUtils.printHelp();
 
             } else if(action.length() ==0 ){
-            
                 // do nothing.
-                
             } else {
-            
-                // Your code here
-                
+
+                consoleUtils.error("Invalid action");
             }
         }
 
     }
 
-	/*
-	 * The user requested that a given TimesheetEntry be stopped (marked as complete)
-	 * This method conveys that request to the Timesheet
-	 */
+
     public void processStopAction(String[] actionParts){
 
         if(actionParts.length > 2){
@@ -80,15 +66,33 @@ public class Controller {
             return;
         }
 
-        int id = Integer.parseInt(actionParts[1]);
+        if(actionParts.length <= 1){
+            consoleUtils.error("Stop command requires a valid integer id");
+            return;
+        }
+        int id = 0;
+        try{
+            id = Integer.parseInt(actionParts[1]);
+        } catch (Exception e){
+            consoleUtils.error("Stop command requires a valid integer id");
+            return;
+        }
 
-		// Your code here
+        TimesheetEntry entry = timesheet.get(id);
+        if(entry == null){
+            consoleUtils.error("Could not find entry with id "+id);
+            return;
+        }
+
+        try{
+        	timesheet.stop(entry);
+            consoleUtils.info("Entry stopped");
+        } catch (Exception e){
+            consoleUtils.error("Stop command failed, was entry already stopped?");
+        }
+
     }
 
-	/*
-	 * The user requested that a given TimesheetEntry be deleted
-	 * This method conveys that request to the Timesheet
-	 */
     public void processDeleteAction(String[] actionParts){
 
         if(actionParts.length > 2){
@@ -96,36 +100,66 @@ public class Controller {
             return;
         }
 
-        int id = Integer.parseInt(actionParts[1]);
-		
-		// Your code here
+        if(actionParts.length <= 1){
+            consoleUtils.error("Delete command requires a valid integer id");
+            return;
+        }
+        int id = 0;
+        try{
+            id = Integer.parseInt(actionParts[1]);
+        } catch (Exception e){
+            consoleUtils.error("Delete command requires a valid integer id");
+            return;
+        }
+
+        TimesheetEntry entry = timesheet.get(id);
+        if(entry == null){
+            consoleUtils.error("Could not find entry with id "+id);
+            return;
+        }
+
+        timesheet.delete(entry);
+        consoleUtils.info("Entry deleted");
+
+
+
     }
 
-	/*
-	 * The user wants to view a list of timesheet entries
-	 * This method conveys that request to the Timesheet,
-	 * along with any special options (active-only, filter by project name)
-	 */
     public void processListAction(String[] actionParts){
-    
         if(actionParts.length > 3){
             consoleUtils.error("Too many inputs to list command");
             return;
         }
+        boolean activeOnly = false;
+        String project = null;
+        for(String part: actionParts){
+            if(part.equals("-a")){
+                activeOnly = true;
+            } else if(part.equals("list")){
+                continue;
+            } else {
+                project = part;
+            }
+        }
 
-		// Your code here
+        List<TimesheetEntry> entries = timesheet.list(project, activeOnly);
+        consoleUtils.printList(entries);
+
     }
 
-	/*
-	 * The user wants to add a new entry to the Timesheet
-	 * This method conveys that request to the Timesheet, along with
-	 * the specified project name and task description 
-	 */
+
+
+
     public void processAddAction(){
-    
-        String project = consoleUtils.promptString("Project Name (one word only):");
+        String project = consoleUtils.promptString("Project:");
         String description = consoleUtils.promptString("Task:");
 
-		// Your code here
+        if(project == null || project.length() == 0){
+            consoleUtils.error("A project is required");
+        } else {
+        	timesheet.add(project, description);
+            consoleUtils.info("Entry added");
+        }
+
     }
 }
